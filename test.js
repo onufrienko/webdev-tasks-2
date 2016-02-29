@@ -7,6 +7,31 @@ multivarka.server(localhost)
         .collection('students')
         .where('group')
         .equal('ПИ-301')
+        .set('group', 'ПИ-302')
+        .update(function (err, res) {
+            console.log(res);
+        });
+
+multivarka.server(localhost)
+        .collection('removeMe')
+        .remove(function (err, res) {});
+
+var sasha = {
+    name: 'Илья',
+    group: 'МТ-301',
+    grade: 3
+};
+
+multivarka.server(localhost)
+        .collection('students')
+        .insert(sasha, function (err, res) {
+            console.log(res);
+        });
+
+multivarka.server(localhost)
+        .collection('students')
+        .where('group')
+        .equal('ПИ-301')
         .find(function (err, data) {
             console.log(data);
         });

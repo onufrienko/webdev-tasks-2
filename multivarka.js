@@ -42,9 +42,58 @@ var multivarka = {
             if (err) {
                 console.log('ERROR ' + err);
             } else {
-                var collection = db.collection(name);
-                collection.find(limit).toArray(function (err, result) {
+                db.collection(name).find(limit).toArray(function (err, result) {
                     cb(err, result);
+                    db.close();
+                });
+            }
+        });
+    },
+    insert: function (record, cb) {
+        var name = this.colName;
+        mongoClient.connect(this.url, function (err, db) {
+            if (err) {
+                console.log('ERROR ' + err);
+            } else {
+                db.collection(name).insert(record, function (err, res) {
+                    cb(err, res);
+                    db.close();
+                });
+            }
+        });
+    },
+    remove: function (cb) {
+        var name = this.colName;
+        mongoClient.connect(this.url, function (err, db) {
+            if (err) {
+                console.log('ERROR ' + err);
+            } else {
+                db.collection(name).deleteMany({}, function (err, results) {
+                    cb(err, results);
+                    db.close();
+                });
+            }
+        });
+    },
+    set: function (field, value) {
+        var optionObj = {};
+        optionObj[field] = value;
+        this.setObj = {
+            $set: optionObj
+        };
+        return this;
+    },
+    update: function (cb) {
+        console.log(this);
+        var name = this.colName;
+        var limit = this.obj;
+        var set = this.setObj;
+        mongoClient.connect(this.url, function (err, db) {
+            if (err) {
+                console.log('ERROR ' + err);
+            } else {
+                db.collection(name).updateMany(limit, set, function (err, results) {
+                    cb(err, results);
                     db.close();
                 });
             }
