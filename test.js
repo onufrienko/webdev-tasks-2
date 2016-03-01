@@ -6,33 +6,33 @@ const localhost = 'mongodb://localhost:27017/test';
 multivarka.server(localhost)
         .collection('students')
         .where('group')
-        .equal('ПИ-301')
-        .set('group', 'ПИ-302')
-        .update(function (err, res) {
+        .equal('МТ-302')
+        .set('group', 'МТ-301')
+        .update(function (res) {
             console.log(res);
         });
 
 multivarka.server(localhost)
         .collection('removeMe')
-        .remove(function (err, res) {});
+        .remove(function (res) {});
 
-var sasha = {
-    name: 'Илья',
-    group: 'МТ-301',
-    grade: 3
+var mary = {
+    name: 'Мария',
+    group: 'ФТ-101',
+    grade: 4
 };
 
 multivarka.server(localhost)
         .collection('students')
-        .insert(sasha, function (err, res) {
+        .insert(mary, function (res) {
             console.log(res);
         });
 
 multivarka.server(localhost)
         .collection('students')
         .where('group')
-        .equal('ПИ-301')
-        .find(function (err, data) {
+        .equal('ПИ-302')
+        .find(function (data) {
             console.log(data);
         });
 
@@ -40,7 +40,7 @@ multivarka.server(localhost)
         .collection('students')
         .where('grade')
         .lessThan(5)
-        .find(function (err, data) {
+        .find(function (data) {
             console.log(data);
         });
 
@@ -49,14 +49,14 @@ multivarka.server(localhost)
         .where('grade')
         .not()
         .greateThan(5)
-        .find(function (err, data) {
+        .find(function (data) {
             console.log(data);
         });
 
 multivarka.server(localhost)
         .collection('students')
         .where('group')
-        .include(['ПИ-301', 'КБ-301'])
-        .find(function (err, data) {
+        .include(['ПИ-302', 'КБ-301'])
+        .find(function (data) {
             console.log(data);
         });

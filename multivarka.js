@@ -38,41 +38,50 @@ var multivarka = {
     find: function (cb) {
         var name = this.colName;
         var limit = this.obj;
-        mongoClient.connect(this.url, function (err, db) {
-            if (err) {
-                console.log('ERROR ' + err);
-            } else {
-                db.collection(name).find(limit).toArray(function (err, result) {
-                    cb(err, result);
-                    db.close();
-                });
-            }
+        var db;
+        mongoClient.connect(this.url)
+        .then((database) => {
+            db = database;
+            return db.collection(name).find(limit).toArray();
+        })
+        .then((results) => {
+            cb(results);
+            db.close();
+        })
+        .catch((err) => {
+            console.error(err);
         });
     },
     insert: function (record, cb) {
         var name = this.colName;
-        mongoClient.connect(this.url, function (err, db) {
-            if (err) {
-                console.log('ERROR ' + err);
-            } else {
-                db.collection(name).insert(record, function (err, res) {
-                    cb(err, res);
-                    db.close();
-                });
-            }
+        var db;
+        mongoClient.connect(this.url)
+        .then((database) => {
+            db = database;
+            return db.collection(name).insert(record);
+        })
+        .then((results) => {
+            cb(results);
+            db.close();
+        })
+        .catch((err) => {
+            console.error(err);
         });
     },
     remove: function (cb) {
         var name = this.colName;
-        mongoClient.connect(this.url, function (err, db) {
-            if (err) {
-                console.log('ERROR ' + err);
-            } else {
-                db.collection(name).deleteMany({}, function (err, results) {
-                    cb(err, results);
-                    db.close();
-                });
-            }
+        var db;
+        mongoClient.connect(this.url)
+        .then((database) => {
+            db = database;
+            return db.collection(name).deleteMany({});
+        })
+        .then((results) => {
+            cb(results);
+            db.close();
+        })
+        .catch((err) => {
+            console.error(err);
         });
     },
     set: function (field, value) {
@@ -84,19 +93,21 @@ var multivarka = {
         return this;
     },
     update: function (cb) {
-        console.log(this);
         var name = this.colName;
         var limit = this.obj;
         var set = this.setObj;
-        mongoClient.connect(this.url, function (err, db) {
-            if (err) {
-                console.log('ERROR ' + err);
-            } else {
-                db.collection(name).updateMany(limit, set, function (err, results) {
-                    cb(err, results);
-                    db.close();
-                });
-            }
+        var db;
+        mongoClient.connect(this.url)
+        .then((database) => {
+            db = database;
+            return db.collection(name).updateMany(limit, set);
+        })
+        .then((results) => {
+            cb(results);
+            db.close();
+        })
+        .catch((err) => {
+            console.error(err);
         });
     }
 };
