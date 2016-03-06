@@ -2,13 +2,16 @@
 
 const mongoClient = require('mongodb').MongoClient;
 
-var multivarka = {
+module.exports = {
     server: function (url) {
         this.url = url;
         return this;
     },
     collection: function (name) {
         this.colName = name;
+        this.limits = {};
+        this.setObj = {};
+        this.setObj.$set = {};
         return this;
     },
     not: function () {
@@ -20,143 +23,73 @@ var multivarka = {
         return this;
     },
     equal: function (value) {
-        this.obj = getObj(this.field, value, 'equal', this.isNot);
+        this.limits[this.field] = getValue('equal', value, this.isNot);
         return this;
     },
     lessThan: function (value) {
-        this.obj = getObj(this.field, value, 'less', this.isNot);
+        this.limits[this.field] = getValue('less', value, this.isNot);
         return this;
     },
     greateThan: function (value) {
-        this.obj = getObj(this.field, value, 'greate', this.isNot);
+        this.limits[this.field] = getValue('greate', value, this.isNot);
         return this;
     },
     include: function (value) {
-        this.obj = getObj(this.field, value, 'include', this.isNot);
+        this.limits[this.field] = getValue('include', value, this.isNot);
         return this;
     },
     find: function (cb) {
-        var name = this.colName;
-        var limit = this.obj;
-        var db;
-        mongoClient.connect(this.url)
-        .then((database) => {
-            db = database;
-            return db.collection(name).find(limit).toArray();
-        })
-        .then((results) => {
-            cb(results);
-            db.close();
-        })
-        .catch((err) => {
-            console.error(err);
+        doRequest(this, cb, (db) => {
+            return db.collection(this.colName).find(this.limits).toArray();
         });
     },
     insert: function (record, cb) {
-        var name = this.colName;
-        var db;
-        mongoClient.connect(this.url)
-        .then((database) => {
-            db = database;
-            return db.collection(name).insert(record);
-        })
-        .then((results) => {
-            cb(results);
-            db.close();
-        })
-        .catch((err) => {
-            console.error(err);
+        doRequest(this, cb, (db) => {
+            return db.collection(this.colName).insert(record);
         });
     },
     remove: function (cb) {
-        var name = this.colName;
-        var db;
-        mongoClient.connect(this.url)
-        .then((database) => {
-            db = database;
-            return db.collection(name).deleteMany({});
-        })
-        .then((results) => {
-            cb(results);
-            db.close();
-        })
-        .catch((err) => {
-            console.error(err);
+        doRequest(this, cb, (db) => {
+            return db.collection(this.colName).deleteMany({});
         });
     },
     set: function (field, value) {
-        var optionObj = {};
-        optionObj[field] = value;
-        this.setObj = {
-            $set: optionObj
-        };
+        this.setObj.$set[field] = value;
+        console.log(this.setObj);
         return this;
     },
     update: function (cb) {
-        var name = this.colName;
-        var limit = this.obj;
-        var set = this.setObj;
-        var db;
-        mongoClient.connect(this.url)
-        .then((database) => {
-            db = database;
-            return db.collection(name).updateMany(limit, set);
-        })
-        .then((results) => {
-            cb(results);
-            db.close();
-        })
-        .catch((err) => {
-            console.error(err);
+        doRequest(this, cb, (db) => {
+            return db.collection(this.colName).updateMany(this.limits, this.setObj);
         });
     }
 };
 
-function getObj(field, value, type, isNot) {
-    value = isNot ? getNotValue(type, value) : getValue(type, value);
-    var obj = {};
-    obj[field] = value;
-    return obj;
+function doRequest(params, cb, action) {
+    var db;
+    mongoClient.connect(params.url)
+    .then((database) => {
+        db = database;
+        return action(db);
+    })
+    .then((results) => {
+        cb(results);
+        db.close();
+    })
+    .catch((err) => {
+        console.error(err);
+    });
 }
 
-function getValue(type, value) {
+function getValue(type, value, isNot) {
     switch (type) {
         case 'equal':
-            return value;
+            return isNot ? { $ne: value} : value;
         case 'less':
-            return {
-                $lt: value
-            };
+            return isNot ? { $gte: value} : { $lt: value};
         case 'greate':
-            return {
-                $gt: value
-            };
+            return isNot ? { $lte: value} : { $gt: value};
         case 'include':
-            return {
-                $in: value
-            };
+            return isNot ? { $nin: value} : { $in: value};
     }
 }
-
-function getNotValue(type, value) {
-    switch (type) {
-        case 'equal':
-            return {
-                $ne: value
-            };
-        case 'less':
-            return {
-                $gte: value
-            };
-        case 'greate':
-            return {
-                $lte: value
-            };
-        case 'include':
-            return {
-                $nin: value
-            };
-    }
-}
-
-module.exports = multivarka;
